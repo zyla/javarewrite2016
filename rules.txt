@@ -1,0 +1,2 @@
+forall a b. (a + b) + c -> a + (b + c) ;;
+forall a b. a + b -> eval(a + b)
