@@ -10,17 +10,20 @@ author:              Maciej Bielecki
 maintainer:          zyla@prati.pl
 category:            Language
 build-type:          Simple
-extra-source-files:  ChangeLog.md
 cabal-version:       >=1.10
 
 executable javarewrite2016
   main-is:             Main.hs
-  -- other-modules:       
-  -- other-extensions:    
+
+  other-modules:       JavaRewrite
+                       JavaRewrite.Rule
+                       JavaRewrite.RuleParser
+
   build-depends:       base >=4.9 && <4.10
                      , language-java == 0.2.*
                      , parsec
                      , pretty
                      , containers
-  -- hs-source-dirs:      
+                     , QuickCheck
+
   default-language:    Haskell2010

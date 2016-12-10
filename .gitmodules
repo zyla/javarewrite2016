@@ -1,0 +1,3 @@
+[submodule "language-java"]
+	path = language-java
+	url = git@github.com:zyla/language-java
