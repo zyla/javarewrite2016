@@ -1,4 +1,8 @@
-module JavaRewrite.RuleParser where
+module JavaRewrite.RuleParser (
+    P, rules, rule, pattern
+  , Text.Parsec.eof
+  , Text.Parsec.parse
+) where
 
 import JavaRewrite.Rule
 import Language.Java.Lexer
@@ -14,11 +18,16 @@ rules = rule `sepBy` (tok SemiColon *> tok SemiColon)
 rule :: P Rule
 rule = 
   Rule
-    <$> (Pattern
-      <$> (try (forall *> many ident <* tok Period) <|> pure [])
-      <*> Language.Java.Parser.exp)
+    <$> pattern
     <*> (tok LambdaArrow *> Language.Java.Parser.exp)
 
+pattern :: P Pattern
+pattern =
+  Pattern
+    <$> (try (forall *> many ident <* tok Period) <|> pure [])
+    <*> Language.Java.Parser.exp
+
+-- | Parse the keyword @forall@.
 forall :: P ()
 forall = javaToken (\tok ->
   case tok of IdentTok "forall" -> Just (); _ -> Nothing)

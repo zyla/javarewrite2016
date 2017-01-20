@@ -14,7 +14,7 @@ match :: Pattern -> Exp -> Maybe Subst
 match Pattern { pattern_metavars = metavars, pattern_expr = pattern } expr
  = unMatchResult $ matchPattern (S.fromList metavars) pattern expr
 
-newtype MatchResult = MatchResult { unMatchResult :: Maybe Subst }
+newtype MatchResult = MatchResult { unMatchResult :: Maybe Subst } deriving (Eq, Show)
 
 instance Monoid MatchResult where
   mempty = MatchResult $ Just M.empty
