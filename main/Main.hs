@@ -7,8 +7,7 @@ import JavaRewrite.Rule
 import qualified Language.Java.Parser as Parser
 import qualified Language.Java.Lexer as Lexer
 import Language.Java.Pretty
-import Language.Java.Syntax (Exp)
-import Language.Java.Syntax.Types (Ident(..))
+import Language.Java.Syntax (Exp, Ident(..))
 import Text.Parsec
 import System.IO (hPutStrLn, stderr)
 import System.Environment (getArgs)
