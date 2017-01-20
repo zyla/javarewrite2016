@@ -14,8 +14,9 @@ rules = rule `sepBy` (tok SemiColon *> tok SemiColon)
 rule :: P Rule
 rule = 
   Rule
-    <$> (try (forall *> many ident <* tok Period) <|> pure [])
-    <*> Language.Java.Parser.exp
+    <$> (Pattern
+      <$> (try (forall *> many ident <* tok Period) <|> pure [])
+      <*> Language.Java.Parser.exp)
     <*> (tok LambdaArrow *> Language.Java.Parser.exp)
 
 forall :: P ()

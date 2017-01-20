@@ -7,7 +7,7 @@ import JavaRewrite.Rule
 import qualified Language.Java.Parser as Parser
 import qualified Language.Java.Lexer as Lexer
 import Language.Java.Pretty
-import Language.Java.Syntax.Types (Ident(..))
+import Language.Java.Syntax (Ident(..))
 import Text.Parsec
 import System.IO (hPutStrLn, stderr)
 import System.Environment (getArgs)
@@ -25,9 +25,9 @@ main = do
   putStrLn $ "EXPRESSION:"
   putStrLn $ prettyPrint javaExpr
 
-  forM_ rules $ \rule -> do
-    putStrLn $ "\nRULE: " ++ prettyPrint rule
-    case match rule javaExpr of
+  forM_ rules $ \(Rule pattern _) -> do
+    putStrLn $ "\nPATTERN: " ++ prettyPrint pattern
+    case match pattern javaExpr of
 
       Nothing ->
         putStrLn "No match"

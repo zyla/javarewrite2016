@@ -10,8 +10,8 @@ import Test.QuickCheck
 
 type Subst = M.Map Ident Exp
 
-match :: Rule -> Exp -> Maybe Subst
-match Rule { rule_metavars = metavars, rule_pattern = pattern } expr
+match :: Pattern -> Exp -> Maybe Subst
+match Pattern { pattern_metavars = metavars, pattern_expr = pattern } expr
  = unMatchResult $ matchPattern (S.fromList metavars) pattern expr
 
 newtype MatchResult = MatchResult { unMatchResult :: Maybe Subst }
