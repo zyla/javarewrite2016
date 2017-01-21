@@ -34,7 +34,25 @@ main = hspec $ do
       property $ \(x :: MatchResult) y z -> do
         x <> (y <> z) `shouldBe` (x <> y) <> z
 
-    -- TODO non-linear patterns
+    it "is a commutative monoid" $
+      property $ \(x :: MatchResult) y -> do
+        x <> y `shouldBe` y <> x
+
+    it "merges disjoint substitutions" $ do
+      singleton "a" "1 + 1" <> singleton "b" "2 + 2"
+        `shouldBe` MatchResult (Just ["a" ~> "1 + 1", "b" ~> "2 + 2"])
+
+    it "merges substitutions which agree on common variables" $ do
+      MatchResult (Just ["a" ~> "1 + 1", "b" ~> "2 + 2"])
+          <> MatchResult (Just ["a" ~> "1 + 1", "c" ~> "1"])
+        `shouldBe`
+          MatchResult (Just
+            [ "a" ~> "1 + 1"
+            , "b" ~> "2 + 2"
+            , "c" ~> "1" ])
+
+    it "conflict in substitutions results in a failure" $ do
+      singleton "a" "1 + 1" <> singleton "a" "2 + 2" `shouldBe` failure
 
   describe "unsnoc" $
     it "works" $
@@ -99,6 +117,10 @@ main = hspec $ do
         match (Pattern [] e) e == Just []
 
     -- TODO test several Exp constructors
+
+    it "handles nonlinear patterns" $ do
+      match "forall a. a + a" "1 + 1" `shouldBe` Just ["a" ~> "1"]
+      match "forall a. a + a" "1 + 2" `shouldBe` Nothing
 
 
 -------------------------------------------------------------------------------
