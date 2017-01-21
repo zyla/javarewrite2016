@@ -1,12 +1,14 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE OverloadedLists #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 module Main where
 
+import Control.Monad
 import Data.Monoid
 import Data.String
 
 import Test.Hspec
-import Test.QuickCheck (property)
+import Test.QuickCheck
 
 import Language.Java.Syntax
 import qualified Language.Java.Lexer as Lexer
@@ -79,10 +81,12 @@ main = hspec $ do
     it "handles different number of dimensions in array creation" $ do
       match "new boolean[1]" "new boolean[1][1]" `shouldBe` Nothing
 
-    it "matches expression with itself" $ do
+    it "matches ExpName with itself" $ do
       match "foo" "foo" `shouldBe` Just []
-      -- TODO generalize the above using QuickCheck
-      -- forall (e :: Exp). match (Pattern [] e) e == Just []
+
+    it "matches abritrary expression with itself" $
+      property $ forAll (genExp 5) $ \(e :: Exp) ->
+        match (Pattern [] e) e == Just []
 
     -- TODO test several Exp constructors
 
@@ -113,3 +117,89 @@ unsafeParse p input =
   case Parser.parse (p <* Parser.eof) "<input>" $ Lexer.lexer input of
     Left err -> error (show err)
     Right val -> val
+
+
+-- | Generate an arbitrary 'Exp' with given maximum depth.
+-- It's not an 'Arbitrary' instance to prevent accidental recursion in the
+-- generators.
+genExp :: Int {- depth -} -> Gen Exp
+genExp depth = oneof (branches depth ++ leaves)
+  where
+    branches :: Int -> [Gen Exp]
+    branches 0 = []
+    branches _ =
+      [ FieldAccess <$> (PrimaryFieldAccess <$> genExpNext <*> arbitrary)
+      -- , ClassLit <$> arbitrary
+      -- , ThisClass <$> arbitrary
+      -- , InstanceCreation
+      -- , QualInstanceCreation
+      -- , ArrayCreate Type [Exp] Int
+      -- , ArrayCreateInit Type Int ArrayInit
+      -- , FieldAccess <$> (ClassFieldAccess ...)
+      -- , MethodInv MethodInvocation
+      -- , ArrayAccess ArrayIndex
+      , PostIncrement <$> genExpNext
+      , PostDecrement <$> genExpNext
+      , PreIncrement <$> genExpNext
+      , PreDecrement <$> genExpNext
+      , PrePlus <$> genExpNext
+      , PreMinus <$> genExpNext
+      , PreBitCompl <$> genExpNext
+      , PreNot <$> genExpNext
+      , Cast <$> arbitrary <*> genExpNext
+      , BinOp <$> genExpNext <*> arbitrary <*> genExpNext
+      , InstanceOf <$> genExpNext <*> arbitrary
+      , Cond <$> genExpNext <*> genExpNext <*> genExpNext
+      -- , Assign <$> arbitrary <*> arbitrary <$> genExpNext
+      -- , Lambda LambdaParams LambdaExpression
+      -- , MethodRef Name Ident
+      ]
+      where
+        genExpNext = genExp (depth - 1)
+    
+    leaves = 
+      [ Lit <$> arbitrary
+      , pure This
+      , ExpName <$> arbitrary
+      ]
+
+instance Arbitrary Literal where
+  arbitrary = oneof
+    [ Int <$> arbitrary
+    , Word <$> arbitrary
+    , Float <$> arbitrary
+    , Double <$> arbitrary
+    , Char <$> arbitrary
+    , String <$> arbitrary
+    , pure Null
+    ]
+
+instance Arbitrary Type where
+  arbitrary = oneof
+    [ PrimType <$> arbitraryBoundedEnum
+    , RefType <$> arbitrary
+    ]
+
+instance Arbitrary RefType where
+  arbitrary = oneof
+    [ ClassRefType <$> arbitrary
+    -- TODO disabled for now, because it's recursive
+    -- , ArrayType <$> arbitrary
+    ]
+
+instance Arbitrary ClassType where
+  arbitrary = ClassType <$> listOf1 ((,) <$> arbitrary <*> pure [])
+    -- TODO lol generics
+
+instance Arbitrary Op where
+  arbitrary = arbitraryBoundedEnum
+
+instance Arbitrary AssignOp where
+  arbitrary = arbitraryBoundedEnum
+
+-- The following instances stolen from language-java tests/Tests.hs
+
+instance Arbitrary Name where
+    arbitrary = Name <$> (choose (1,3) >>= \len -> replicateM len arbitrary)
+instance Arbitrary Ident where
+    arbitrary = Ident <$> (choose (1,15) >>= \len -> replicateM len (elements (['a'..'z'] ++ ['A'..'Z'])))
