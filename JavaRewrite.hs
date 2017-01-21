@@ -9,10 +9,9 @@ import qualified Data.Set as S
 
 import Language.Java.Syntax
 
+import RandomStuff
 import JavaRewrite.Rule
 import JavaRewrite.MatchResult
-
-import Test.QuickCheck
 
 match :: Pattern -> Exp -> Maybe Subst
 match Pattern { pattern_metavars = metavars, pattern_expr = pattern } expr
@@ -122,11 +121,3 @@ fromFieldAccessExp (ExpName (Name idents))
 fromFieldAccessExp (FieldAccess (PrimaryFieldAccess exp field_name))
   = Just (exp, field_name)
 fromFieldAccessExp _ = Nothing
-
-unsnoc :: [a] -> Maybe ([a], a)
-unsnoc [] = Nothing
-unsnoc [x] = Just ([], x)
-unsnoc (x : xs) = (\(init, tail) -> (x : init, tail)) <$> unsnoc xs
-
-prop_unsnoc_append :: [Int] -> Int -> Property
-prop_unsnoc_append xs y = unsnoc (xs ++ [y]) === Just (xs, y)

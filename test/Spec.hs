@@ -9,6 +9,7 @@ import Test.Hspec
 import Test.QuickCheck
 import TestUtils
 
+import RandomStuff
 import JavaRewrite
 
 main = hspec $ do
@@ -49,7 +50,8 @@ main = hspec $ do
 
   describe "unsnoc" $
     it "works" $
-      property prop_unsnoc_append
+      property $ \(xs :: [Int]) (y :: Int) -> 
+        unsnoc (xs ++ [y]) === Just (xs, y)
 
   describe "matchPattern" $ do
     it "recognizes metavariables properly" $ do

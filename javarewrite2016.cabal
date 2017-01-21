@@ -15,12 +15,13 @@ library
                        JavaRewrite.Rule
                        JavaRewrite.RuleParser
 
+                       RandomStuff
+
   build-depends:       base >=4.9 && <4.10
                      , language-java == 0.2.*
                      , parsec
                      , pretty
                      , containers
-                     , QuickCheck
 
   default-language:    Haskell2010
 
