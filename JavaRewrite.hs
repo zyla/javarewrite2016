@@ -26,12 +26,20 @@ singleton k v = MatchResult $ Just $ M.singleton k v
 failure :: MatchResult
 failure = MatchResult Nothing
 
+success :: MatchResult
+success = mempty
+
 matchPattern :: S.Set Ident -> Exp -> Exp -> MatchResult
 matchPattern metavars = go
   where
-    go (ExpName (Name [name])) exp
-      | name `S.member` metavars
-         = singleton name exp
+    go (ExpName (Name [pname])) exp
+
+      | pname `S.member` metavars
+         = singleton pname exp
+
+      | ExpName (Name [ename]) <- exp
+      , pname == ename
+         = success
 
     go pattern exp
       | Just (pexp, pfield) <- fromFieldAccessExp pattern

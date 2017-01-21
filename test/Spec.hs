@@ -19,8 +19,8 @@ import qualified JavaRewrite.RuleParser as Parser
 main = hspec $ do
   describe "MatchResult" $ do
     it "propagates failure properly" $ do
-      failure <> mempty `shouldBe` failure
-      mempty <> failure `shouldBe` failure
+      failure <> success `shouldBe` failure
+      success <> failure `shouldBe` failure
 
     -- TODO non-linear patterns
 
@@ -34,7 +34,9 @@ main = hspec $ do
       match "forall a. b" "foo" `shouldBe` Nothing
 
     it "matches expression with itself" $ do
-      pendingWith "doesn't work" -- match "foo" "foo" `shouldBe` Just []
+      match "foo" "foo" `shouldBe` Just []
+      -- TODO generalize the above using QuickCheck
+      -- forall (e :: Exp). match (Pattern [] e) e == Just []
 
     -- TODO test several Exp constructors
 
