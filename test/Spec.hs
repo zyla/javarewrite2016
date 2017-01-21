@@ -10,7 +10,6 @@ import Test.QuickCheck
 import TestUtils
 
 import JavaRewrite
-import JavaRewrite.Rule
 
 main = hspec $ do
   describe "MatchResult" $ do
