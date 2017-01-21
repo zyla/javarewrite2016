@@ -76,6 +76,9 @@ main = hspec $ do
       match "forall a. new boolean[false][][]" "new boolean[true][][]"
         `shouldBe` Nothing
 
+    it "handles different number of dimensions in array creation" $ do
+      match "new boolean[1]" "new boolean[1][1]" `shouldBe` Nothing
+
     it "matches expression with itself" $ do
       match "foo" "foo" `shouldBe` Just []
       -- TODO generalize the above using QuickCheck

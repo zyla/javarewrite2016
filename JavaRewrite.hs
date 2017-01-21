@@ -108,9 +108,11 @@ matchPattern metavars = go
       = go pbool ebool <> go ptrueexp etrueexp <> go pfalseexp efalseexp
 
     -- Array match
-    go (ArrayCreate ptype pexps pdim) (ArrayCreate etype eepxs edim)
-      | ptype == etype && pdim == edim =
-        foldl (<>) success . map (uncurry go) . zip pexps $ eepxs
+    go (ArrayCreate ptype pexps pdim) (ArrayCreate etype eexps edim)
+      | ptype == etype
+      , pdim == edim
+      , length pexps == length eexps
+         = foldl (<>) success . map (uncurry go) . zip pexps $ eexps
 
     go This This = success
 
