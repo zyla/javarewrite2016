@@ -112,7 +112,7 @@ matchPattern metavars = go
       | ptype == etype
       , pdim == edim
       , length pexps == length eexps
-         = foldl (<>) success . map (uncurry go) . zip pexps $ eexps
+         = mconcat (zipWith go pexps eexps)
 
     go This This = success
 
