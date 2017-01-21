@@ -2,6 +2,7 @@ module JavaRewrite (
     module JavaRewrite
   , module JavaRewrite.Rule
   , module JavaRewrite.MatchResult
+  , module JavaRewrite.ApplySubst
 ) where
 
 import Data.Monoid
@@ -11,6 +12,7 @@ import Language.Java.Syntax
 
 import JavaRewrite.Rule
 import JavaRewrite.MatchResult
+import JavaRewrite.ApplySubst
 import JavaRewrite.Syntax
 
 match :: Pattern -> Exp -> Maybe Subst

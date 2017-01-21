@@ -4,6 +4,7 @@
 module Main where
 
 import Data.Monoid
+import Data.String
 
 import Test.Hspec
 import Test.QuickCheck
@@ -116,3 +117,62 @@ main = hspec $ do
     it "handles nonlinear patterns" $ do
       match "forall a. a + a" "1 + 1" `shouldBe` Just ["a" ~> "1"]
       match "forall a. a + a" "1 + 2" `shouldBe` Nothing
+
+  describe "applySubst" $ do
+    it "empty substitution does nothing" $ do
+      property $ forAll (genExp 5) $ \e ->
+        applySubst [] e == e
+
+    it "substitutes variables" $ do
+      applySubst ["a" ~> "foo"] "a" `shouldBe` "foo"
+
+    it "leaves other variables alone" $ do
+      applySubst ["a" ~> "foo"] "b" `shouldBe` "b"
+
+    substExample "A"
+    substExample "A + 1"
+    substExample "1 + A"
+    substExample "++A"
+    substExample "foo(A)"
+    substExample "foo.bar(A)"
+    substExample "A.foo"
+    substExample "(A).foo"
+    substExample "A.foo()"
+    substExample "A[0]"
+    substExample "foo[A]"
+    substExample "new int[A]"
+    substExample "A instanceof T"
+    substExample "A ? 1 : 2"
+    substExample "true ? A : 2"
+    substExample "true ? 1 : A"
+    substExample "(T) A"
+
+    -- assignments
+    substExamplePending "A = 1"
+    substExamplePending "foo = A"
+    substExamplePending "A.foo = 1"
+    substExamplePending "(A).foo = 1"
+
+    -- InstanceCreation
+    substExamplePending "new T(A)"
+    substExamplePending "new T[] { A }"
+    substExamplePending "A.new T(A)"
+
+    -- lambda
+    substExamplePending "x -> A"
+    -- TODO: avoiding capture?
+
+    -- TODO: explain why there's A.foo and (A).foo
+
+substExample = substExample' id
+
+substExamplePending = substExample' (\_ -> pendingWith "Not implemented yet")
+
+substExample' :: (Expectation -> Expectation) -> String -> Spec
+substExample' f expr =
+    it ("(" ++ expr ++ ")[B/A] = " ++ result) $
+      f $ applySubst ["A" ~> "B"] (fromString expr) `shouldBe` fromString result
+  where
+    result = map a_to_b expr
+    a_to_b 'A' = 'B'
+    a_to_b x   = x
