@@ -20,9 +20,19 @@ import qualified JavaRewrite.RuleParser as Parser
 
 main = hspec $ do
   describe "MatchResult" $ do
-    it "propagates failure properly" $ do
-      failure <> success `shouldBe` failure
-      success <> failure `shouldBe` failure
+    it "propagates failure properly" $
+      property $ \(x :: MatchResult) -> do
+        failure <> x `shouldBe` failure
+        x <> failure `shouldBe` failure
+
+    it "respects Monoid law 1" $
+      property $ \(x :: MatchResult) -> do
+        mempty <> x `shouldBe` x
+        x <> mempty `shouldBe` x
+
+    it "respects Monoid law 2" $
+      property $ \(x :: MatchResult) y z -> do
+        x <> (y <> z) `shouldBe` (x <> y) <> z
 
     -- TODO non-linear patterns
 
@@ -118,10 +128,13 @@ unsafeParse p input =
     Left err -> error (show err)
     Right val -> val
 
+instance Arbitrary MatchResult where
+  arbitrary = MatchResult <$> arbitrary
+
+instance Arbitrary Exp where
+  arbitrary = genExp 3
 
 -- | Generate an arbitrary 'Exp' with given maximum depth.
--- It's not an 'Arbitrary' instance to prevent accidental recursion in the
--- generators.
 genExp :: Int {- depth -} -> Gen Exp
 genExp depth = oneof (branches depth ++ leaves)
   where
