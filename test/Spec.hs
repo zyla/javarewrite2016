@@ -33,6 +33,49 @@ main = hspec $ do
       match "forall a. a" "foo" `shouldBe` Just ["a" ~> "foo"]
       match "forall a. b" "foo" `shouldBe` Nothing
 
+    it "recognizes literals properly" $ do
+      match "forall a. 1 + a" "1 + 2" `shouldBe` Just ["a" ~> "2"]
+      match "forall a. \"asd\" + a" "\"asd\" + 2" `shouldBe` Just ["a" ~> "2"]
+      match "forall a. 1 + a" "2 + 2" `shouldBe` Nothing
+
+    it "recognizes pre/post increment/decrement" $ do
+      match "forall a. a++" "foo++" `shouldBe` Just ["a" ~> "foo"]
+      match "forall a. ++a" "++foo" `shouldBe` Just ["a" ~> "foo"]
+      match "forall a. a--" "foo--" `shouldBe` Just ["a" ~> "foo"]
+      match "forall a. --a" "--foo" `shouldBe` Just ["a" ~> "foo"]
+
+    it "recognizes pre operators" $ do
+      match "forall a. +a" "+foo" `shouldBe` Just ["a" ~> "foo"]
+      match "forall a. -a" "-foo" `shouldBe` Just ["a" ~> "foo"]
+      match "forall a. !a" "!foo" `shouldBe` Just ["a" ~> "foo"]
+      match "forall a. ~a" "~foo" `shouldBe` Just ["a" ~> "foo"]
+
+    it "recognizes cast operation" $ do
+      match "forall a. (String)a" "(String)foo" `shouldBe` Just ["a" ~> "foo"]
+      match "forall a. (Int)a" "(String)foo" `shouldBe` Nothing
+      -- match "forall a b. (b)a" "(String)foo" `shouldBe` Just ["a" ~> "foo", "b" ~> "String"]
+
+    it "recognizes instanceof operation" $ do
+      match "forall a. a instanceof String" "foo instanceof String"
+        `shouldBe` Just ["a" ~> "foo"]
+      -- match "forall a b. a instanceof b" "foo instanceof String"
+      -- `shouldBe` Just ["a" ~> "foo", "b" ~> "String"]
+
+    it "recognizes condition operator" $ do
+      match "forall a b c. a?b:c" "foo==bar?1:2" `shouldBe`
+        Just ["a" ~> "foo==bar", "b" ~> "1", "c" ~> "2"]
+
+    it "recognizes 'this' keyword" $ do
+      match "forall a. this" "this" `shouldBe` Just []
+
+    it "recognizes array creation" $ do
+      match "forall a. new boolean[a][][]" "new boolean[true][][]" `shouldBe`
+        Just ["a" ~> "true"]
+      match "forall a. new boolean[a][][]" "new boolean[true][]" `shouldBe`
+        Nothing
+      match "forall a. new boolean[false][][]" "new boolean[true][][]"
+        `shouldBe` Nothing
+
     it "matches expression with itself" $ do
       match "foo" "foo" `shouldBe` Just []
       -- TODO generalize the above using QuickCheck
