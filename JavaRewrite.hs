@@ -9,9 +9,9 @@ import qualified Data.Set as S
 
 import Language.Java.Syntax
 
-import RandomStuff
 import JavaRewrite.Rule
 import JavaRewrite.MatchResult
+import JavaRewrite.Syntax
 
 match :: Pattern -> Exp -> Maybe Subst
 match Pattern { pattern_metavars = metavars, pattern_expr = pattern } expr
@@ -105,19 +105,3 @@ matchPattern metavars = go
     go This This = success
 
     go _ _ = failure
-
--- The field access expression @a.b@ can be expressed in the AST in two ways
--- (in simplified form):
--- - @ExpName ["a", "b"]@
--- - @FieldAccess (PrimaryFieldAccess (ExpName ["a"], "b"))
---
--- This function converts the two forms to the same representation.
---
--- TODO: what is ClassFieldAccess and what to do about it
-fromFieldAccessExp :: Exp -> Maybe (Exp, Ident)
-fromFieldAccessExp (ExpName (Name idents))
-  | Just (inner_idents, field_name) <- unsnoc idents
-  = Just (ExpName (Name inner_idents), field_name)
-fromFieldAccessExp (FieldAccess (PrimaryFieldAccess exp field_name))
-  = Just (exp, field_name)
-fromFieldAccessExp _ = Nothing
