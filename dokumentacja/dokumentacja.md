@@ -33,23 +33,25 @@ System.println(“To jest kot\nktóry jest rudy”);
 Aplikacja jest napisana przy użyciu języka Haskell, zatem do jej uruchomienia
 potrzebny jest program Stack dodany do zmiennej środowiskowej $PATH.
 
-Aby zbudować projekt wykorzystując narzędzie Stack należy w katalogu projetku:
+Aby zbudować projekt wykorzystując narzędzie Stack należy w katalogu projektu:
 ```bash
 $ stack setup
 ```
-Aby uruchomić projekt, należy po zbudowaniu :
+Aby uruchomić projekt, należy po zbudowaniu:
 
 ```bash
 $ stack exec javarewrite2016 -- rules.txt test.java
 
 ```
-gdzie rules.txt - plik zawierający reguły optymalizacji kodu zapisane zgodnie
-ze składnią omówioną poniżej w sekcji Reguły  
-test.java - Plik źródłowy java, który zostanie poddany optymalizacji
+gdzie
+
+- `rules.txt` - plik zawierający reguły przekształcania kodu zapisane zgodnie
+  ze składnią omówioną poniżej w sekcji Reguły  
+- `test.java` - Plik źródłowy w języku Java, który zostanie poddany przekształceniom
 
 ## Reguły
 
-Postanowiliśmy zmodyfikować składnię reguł przedstawionych w przykładzie.
+Postanowiliśmy zmodyfikować składnię reguł przedstawioną z treści zadania.
 
 Pierwszą z modyfikacji jest zmiana sposobu rozróżniania odwołań do zmiennych
 Javy od zmiennych języka reguł (dalej: metazmiennych). W składni użytej w tym
