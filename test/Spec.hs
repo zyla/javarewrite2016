@@ -177,13 +177,13 @@ main = hspec $ do
   describe "applyRules" $ do
     it "double success" $ do
       applyRules testRules "~!a"
-       `shouldBe` applySuccess "a"
+       `shouldBe` rewriteSuccess "a"
 
     it "single success" $ do
       applyRules testRules "~a"
-       `shouldBe` applySuccess "a"
+       `shouldBe` rewriteSuccess "a"
       applyRules testRules "!a"
-       `shouldBe` applySuccess "a"
+       `shouldBe` rewriteSuccess "a"
 
     it "failure" $ do
       applyRules testRules "a"
@@ -192,9 +192,9 @@ main = hspec $ do
   describe "repeat applyRules" $
     it "works" $ do
       repeatUntilFailure (applyRules testRules) "~~~a"
-       `shouldBe` applySuccess "a"
+       `shouldBe` rewriteSuccess "a"
       repeatUntilFailure (applyRules testRules) "~~!!!~~!!a"
-       `shouldBe` applySuccess "a"
+       `shouldBe` rewriteSuccess "a"
       repeatUntilFailure (applyRules testRules) "a"
        `shouldBe` return "a"
 
