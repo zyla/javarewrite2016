@@ -1,2 +1,13 @@
-forall a b. (a + b) + c -> a + (b + c) ;;
-forall a b. a + b -> eval(a + b)
+forall a.   a + a             -> 2 * a   ;;
+forall a.   a - a             -> 0       ;;
+forall b.   !!b               -> b       ;;
+forall a b. a + (-b)          -> a - b   ;;
+
+forall b.   b && false        -> false   ;;
+forall b.   b && true         -> b       ;;
+forall b.   false && b        -> false   ;;
+forall b.   true && b         -> b       ;;
+
+forall a.   a == a            -> true    ;;
+forall a b. true ? a : b      -> a       ;;
+forall a b. false ? a : b     -> b

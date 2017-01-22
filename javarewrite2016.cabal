@@ -18,6 +18,7 @@ library
                        JavaRewrite.ApplySubst
                        JavaRewrite.Syntax
                        JavaRewrite.Traversals
+                       JavaRewrite.Rewrite
 
                        RandomStuff
 

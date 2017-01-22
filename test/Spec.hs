@@ -170,6 +170,43 @@ main = hspec $ do
 
     -- TODO: explain why there's A.foo and (A).foo
 
+  let testRules = 
+       [ "forall a. ~a -> a"
+       , "forall a. !a -> a" ]
+  
+  describe "applyRules" $ do
+    it "double success" $ do
+      applyRules testRules "~!a"
+       `shouldBe` applySuccess "a"
+
+    it "single success" $ do
+      applyRules testRules "~a"
+       `shouldBe` applySuccess "a"
+      applyRules testRules "!a"
+       `shouldBe` applySuccess "a"
+
+    it "failure" $ do
+      applyRules testRules "a"
+       `shouldBe` return "a"
+
+  describe "repeat applyRules" $
+    it "works" $ do
+      repeatUntilFailure (applyRules testRules) "~~~a"
+       `shouldBe` applySuccess "a"
+      repeatUntilFailure (applyRules testRules) "~~!!!~~!!a"
+       `shouldBe` applySuccess "a"
+      repeatUntilFailure (applyRules testRules) "a"
+       `shouldBe` return "a"
+
+  describe "rewriteCompilationUnit" $
+    it "works" $
+      rewriteCompilationUnit
+          [ "forall a. ~~a -> !!a"
+          , "forall a. !!+!!a -> ~a" ]
+          "class X { int y = ~~+~~1; }"
+        `shouldBe`
+          "class X { int y = ~1; }"
+
 substExample = substExample' id
 
 substExamplePending = substExample' (\_ -> pendingWith "Not implemented yet")

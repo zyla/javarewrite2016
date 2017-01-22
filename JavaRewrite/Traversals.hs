@@ -3,6 +3,7 @@
     DeriveGeneric, MultiParamTypeClasses, UndecidableInstances #-}
 module JavaRewrite.Traversals where
 
+import Control.Monad
 import GHC.Generics
 import Language.Java.Syntax
 
@@ -41,6 +42,9 @@ instance {-# OVERLAPPING #-} GSubstructure Exp (K1 i Exp) where
 -- Definitions for base types
 instance Substructure Exp Bool where substructure = emptyTraversal
 instance Substructure Exp Char where substructure = emptyTraversal
+instance Substructure Exp Int where substructure = emptyTraversal
+instance Substructure Exp Double where substructure = emptyTraversal
+instance Substructure Exp Integer where substructure = emptyTraversal
 
 instance GSubstructure Exp (K1 R a) => Substructure Exp (Maybe a)
 instance GSubstructure Exp (K1 R a) => Substructure Exp [a]
@@ -53,7 +57,9 @@ emptyTraversal _ = pure
 -- BEGIN MOST BEAUTIFUL CODE IN THIS PROJECT
 --------------------------------------------------------------------------------
 instance Substructure Exp Annotation
+instance Substructure Exp ArrayIndex
 instance Substructure Exp ArrayInit
+instance Substructure Exp AssignOp
 instance Substructure Exp Block
 instance Substructure Exp BlockStmt
 instance Substructure Exp Catch
@@ -63,10 +69,12 @@ instance Substructure Exp ClassType
 instance Substructure Exp CompilationUnit
 instance Substructure Exp ConstructorBody
 instance Substructure Exp Decl
+instance Substructure Exp Diamond
 instance Substructure Exp ElementValue
 instance Substructure Exp EnumBody
 instance Substructure Exp EnumConstant
 instance Substructure Exp ExplConstrInv
+instance Substructure Exp FieldAccess
 instance Substructure Exp ForInit
 instance Substructure Exp FormalParam
 instance Substructure Exp Ident
@@ -74,10 +82,16 @@ instance Substructure Exp ImportDecl
 instance Substructure Exp InterfaceBody
 instance Substructure Exp InterfaceDecl
 instance Substructure Exp InterfaceKind
+instance Substructure Exp LambdaExpression
+instance Substructure Exp LambdaParams
+instance Substructure Exp Lhs
+instance Substructure Exp Literal
 instance Substructure Exp MemberDecl
 instance Substructure Exp MethodBody
+instance Substructure Exp MethodInvocation
 instance Substructure Exp Modifier
 instance Substructure Exp Name
+instance Substructure Exp Op
 instance Substructure Exp PackageDecl
 instance Substructure Exp PrimType
 instance Substructure Exp RefType
@@ -87,6 +101,7 @@ instance Substructure Exp SwitchLabel
 instance Substructure Exp Type
 instance Substructure Exp TypeArgument
 instance Substructure Exp TypeDecl
+instance Substructure Exp TypeDeclSpecifier
 instance Substructure Exp TypeParam
 instance Substructure Exp VarDecl
 instance Substructure Exp VarDeclId
@@ -100,3 +115,14 @@ instance Substructure Exp WildcardBound
 -- without their subexpressions.
 expressions :: (Substructure Exp a, Applicative f) => (Exp -> f Exp) -> a -> f a
 expressions = substructure
+
+-- | Traversal for immediate subexpressions for an expression.
+subexpressions :: Applicative f => (Exp -> f Exp) -> Exp -> f Exp
+subexpressions inj = fmap to . gsubstruct inj . from
+
+-- | 'topdown traversal inj' - apply 'inj' to the value, then recursively to
+-- children given by 'traversal'.
+--
+-- @topdown traversal inj = inj >=> traversal inj >=> (traversal . traversal) inj >=> ...@
+topdown :: Monad f => ((a -> f a) -> a -> f a) -> (a -> f a) -> a -> f a
+topdown traversal inj = inj >=> traversal (topdown traversal inj)

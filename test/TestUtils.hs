@@ -31,6 +31,10 @@ instance IsString Pattern where
 instance IsString Rule where
   fromString = unsafeParse Parser.rule
 
+-- | Instance only for tests.
+instance IsString CompilationUnit where
+  fromString = unsafeParse Parser.compilationUnit
+
 unsafeParse :: Parser.P a -> String -> a
 unsafeParse p input =
   case Parser.parse (p <* Parser.eof) "<input>" $ Lexer.lexer input of
