@@ -11,6 +11,7 @@ library
   hs-source-dirs:      .
 
   exposed-modules:     JavaRewrite
+                       JavaRewrite.Match
                        JavaRewrite.MatchResult
                        JavaRewrite.Rule
                        JavaRewrite.RuleParser
