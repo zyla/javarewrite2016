@@ -51,6 +51,13 @@ matchPattern metavars = go
       , pfield == efield
          = go pexp eexp
 
+      | Just (pobj, ptys, pname, pargs, _) <- fromInstanceMethodInvocationExp' pattern
+      , Just (eobj, etys, ename, eargs, _) <- fromInstanceMethodInvocationExp' exp
+      , ptys == etys
+      , pname == ename
+      , length pargs == length eargs
+         = go pobj eobj <> mconcat (zipWith go pargs eargs)
+
     go (BinOp pl pop pr) (BinOp el eop er)
       | pop == eop
          = go pl el <> go pr er

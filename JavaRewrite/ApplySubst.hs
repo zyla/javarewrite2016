@@ -24,7 +24,7 @@ applySubst subst = go
 
     go ExpName{} = error "Redundant pattern, ExpName should be handled by fromFieldAccessExp"
 
-    go e | Just (obj, args, setObjArgs) <- fromInstanceMethodInvocationExp e
+    go e | Just (obj, _, _, args, setObjArgs) <- fromInstanceMethodInvocationExp' e
       = setObjArgs (go obj) (map go args)
   
     -- leaves - do nothing to them

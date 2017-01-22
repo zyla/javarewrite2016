@@ -118,6 +118,12 @@ main = hspec $ do
       match "forall a. a + a" "1 + 1" `shouldBe` Just ["a" ~> "1"]
       match "forall a. a + a" "1 + 2" `shouldBe` Nothing
 
+    it "recognizes System.out.println" $ do
+      match "forall x. System.out.println(x)" "System.out.println(17)" `shouldBe` Just ["x" ~> "17"]
+
+    it "recognizes x.println" $ do
+      match "forall x. x.println(17)" "System.out.println(17)" `shouldBe` Just ["x" ~> "System.out"]
+
   describe "applySubst" $ do
     it "empty substitution does nothing" $ do
       property $ forAll (genExp 5) $ \e ->

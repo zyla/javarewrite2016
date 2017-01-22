@@ -46,15 +46,15 @@ fromFieldAccessExp' _ = Nothing
 -- - @MethodCall ["a", "b"] []@
 -- - @PrimaryMethodCall (ExpName ["a"]) [] "b" []@
 --
--- This function extracts the receiver of the method, the arguments and a
--- function to replace the values in the original expression, with the
--- property:
+-- This function extracts the receiver of the method, the arguments, generic
+-- arguments, method name and a function to replace the values in the original
+-- expression, with the property:
 --
 -- If @fromInstanceMethodInvocationExp e = Just (obj, args, setObjArgs)@, then
 -- @setObjArgs obj args = e@ (TODO: check the property).
-fromInstanceMethodInvocationExp :: Exp -> Maybe (Exp, [Argument], Exp -> [Argument] -> Exp)
+fromInstanceMethodInvocationExp' :: Exp -> Maybe (Exp, [RefType], Ident, [Argument], Exp -> [Argument] -> Exp)
 
-fromInstanceMethodInvocationExp (MethodInv (MethodCall (Name idents) args))
+fromInstanceMethodInvocationExp' (MethodInv (MethodCall (Name idents) args))
   | Just (inner_idents@(_:_), method_name) <- unsnoc idents
     = let obj = ExpName (Name inner_idents)
 
@@ -63,10 +63,10 @@ fromInstanceMethodInvocationExp (MethodInv (MethodCall (Name idents) args))
           setObjArgs obj args
             = MethodInv (PrimaryMethodCall obj [] method_name args)
 
-      in Just (obj, args, setObjArgs)
+      in Just (obj, [], method_name, args, setObjArgs)
 
-fromInstanceMethodInvocationExp (MethodInv (PrimaryMethodCall obj tys name args))
-  = Just (obj, args, \obj args -> MethodInv (PrimaryMethodCall obj tys name args))
+fromInstanceMethodInvocationExp' (MethodInv (PrimaryMethodCall obj tys name args))
+  = Just (obj, tys, name, args, \obj args -> MethodInv (PrimaryMethodCall obj tys name args))
 
-fromInstanceMethodInvocationExp _
+fromInstanceMethodInvocationExp' _
   = Nothing
