@@ -9,6 +9,7 @@ import Data.String
 import Test.Hspec
 import Test.QuickCheck
 import TestUtils
+import Language.Java.Syntax (Exp(..), Literal(..))
 
 import RandomStuff
 import JavaRewrite
@@ -144,6 +145,19 @@ main = hspec $ do
 
     it "leaves other variables alone" $ do
       applySubst ["a" ~> "foo"] "b" `shouldBe` "b"
+
+    it "handles constant folding" $ do
+      applySubst ["a" ~> "1", "b" ~> "2"] "constant_fold(a + b)" `shouldBe` "3"
+      applySubst ["a" ~> "4", "b" ~> "2"] "constant_fold(a * b)" `shouldBe` "8"
+      applySubst ["a" ~> "\"asd\"", "b" ~> "\"1234\""] "constant_fold(a + b)"
+        `shouldBe` Lit (String "asd1234")
+      applySubst ["a" ~> "true", "b" ~> "false"] "constant_fold(a || b)"
+        `shouldBe` Lit (Boolean True)
+      applySubst ["a" ~> "true", "b" ~> "false"] "constant_fold(a && b)"
+        `shouldBe` Lit (Boolean False)
+      applySubst ["a" ~> "true", "b" ~> "false"] "constant_fold(a ^ b)"
+        `shouldBe` Lit (Boolean True)
+
 
     substExample "A"
     substExample "A + 1"

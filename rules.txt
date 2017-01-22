@@ -10,4 +10,5 @@ forall b.   true && b         -> b       ;;
 
 forall a.   a == a            -> true    ;;
 forall a b. true ? a : b      -> a       ;;
-forall a b. false ? a : b     -> b
+forall a b. false ? a : b     -> b       ;;
+forall (a : IntLiteral) (b : IntLiteral). a * b -> constant_fold(a * b)
