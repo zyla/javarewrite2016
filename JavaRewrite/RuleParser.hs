@@ -24,13 +24,27 @@ rule =
 pattern :: P Pattern
 pattern =
   Pattern
-    <$> (try (forall *> many ident <* tok Period) <|> pure [])
+    <$> (try (forall *> many metavariable <* tok Period) <|> pure [])
     <*> Language.Java.Parser.exp
 
 -- | Parse the keyword @forall@.
 forall :: P ()
 forall = javaToken (\tok ->
   case tok of IdentTok "forall" -> Just (); _ -> Nothing)
+
+metavariable :: P Metavariable
+metavariable =
+  (Metavariable <$> ident <*> pure Nothing) <|>
+  parens (Metavariable <$> ident <*> (colon *> (Just <$> expressionType)))
+
+parens p = tok OpenParen *> p <* tok CloseParen
+
+expressionType :: P ExpressionType
+expressionType = javaToken $ \tok ->
+  case tok of
+    IdentTok str | [(ty, "")] <- reads str
+      -> Just ty
+    _ -> Nothing
 
 -- the following stolen from Language.Java.Parser
 

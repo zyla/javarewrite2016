@@ -4,7 +4,29 @@ import Language.Java.Syntax
 import Language.Java.Pretty
 import Text.PrettyPrint
 
-data Pattern = Pattern { pattern_metavars :: [Ident], pattern_expr :: Exp }
+-- | Possible restrictions on the values of metavariables.
+data ExpressionType
+    = IntLiteral
+    | WordLiteral
+    | FloatLiteral
+    | DoubleLiteral
+    | BooleanLiteral
+    | CharLiteral
+    | StringLiteral
+    | NullLiteral
+    deriving (Eq, Show, Read, Ord, Enum, Bounded)
+
+instance Pretty ExpressionType where
+  pretty = text . show
+
+data Metavariable = Metavariable { metavar_name :: Ident, metavar_type :: Maybe ExpressionType }
+  deriving (Eq, Show, Ord)
+
+instance Pretty Metavariable where
+  pretty (Metavariable ident Nothing) = pretty ident
+  pretty (Metavariable ident (Just ty)) = parens (pretty ident <+> text ":" <+> pretty ty)
+
+data Pattern = Pattern { pattern_metavars :: [Metavariable], pattern_expr :: Exp }
   deriving (Eq, Show)
 
 instance Pretty Pattern where

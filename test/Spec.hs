@@ -128,6 +128,12 @@ main = hspec $ do
       match "S(Z)" "S(Z)" `shouldBe` Just []
       match "foo(Z)" "S(Z)" `shouldBe` Nothing
 
+    it "handles expression type restrictions" $ do
+      match "forall (a : StringLiteral). a" "\"foo\"" `shouldBe` Just ["a" ~> "\"foo\""]
+      match "forall (a : StringLiteral). a" "2 + 1" `shouldBe` Nothing
+      match "forall (a : StringLiteral). a" "1" `shouldBe` Nothing
+      match "forall (a : IntLiteral). a" "1" `shouldBe` Just ["a" ~> "1"]
+
   describe "applySubst" $ do
     it "empty substitution does nothing" $ do
       property $ forAll (genExp 5) $ \e ->

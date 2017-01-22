@@ -1,7 +1,7 @@
 module JavaRewrite.Match where
 
 import Data.Monoid
-import qualified Data.Set as S
+import qualified Data.Map.Strict as M
 
 import JavaRewrite.Rule
 import JavaRewrite.MatchResult
@@ -10,7 +10,11 @@ import Language.Java.Syntax
 
 match :: Pattern -> Exp -> Maybe Subst
 match Pattern { pattern_metavars = metavars, pattern_expr = pattern } expr
- = unMatchResult $ matchPattern (S.fromList metavars) pattern expr
+ = unMatchResult $ matchPattern context pattern expr
+  where
+    context = M.fromList $ map (\(Metavariable ident ty) -> (ident, ty)) metavars
+
+type MetavariableContext = M.Map Ident (Maybe ExpressionType)
 
 {-
 Missing Exp pattern matches:
@@ -26,13 +30,15 @@ Missing Exp pattern matches:
  - Lambda
  - MethodRef
 -}
-matchPattern :: S.Set Ident -> Exp -> Exp -> MatchResult
+matchPattern :: MetavariableContext -> Exp -> Exp -> MatchResult
 matchPattern metavars = go
   where
     go (ExpName (Name [pname])) exp
 
-      | pname `S.member` metavars
-         = singleton pname exp
+      | Just maybeExprType <- M.lookup pname metavars
+         = if exprMatchesType maybeExprType exp
+             then singleton pname exp
+             else failure
 
       | ExpName (Name [ename]) <- exp
       , pname == ename
@@ -111,3 +117,16 @@ matchPattern metavars = go
     go This This = success
 
     go _ _ = failure
+
+
+exprMatchesType :: Maybe ExpressionType -> Exp -> Bool
+exprMatchesType (Just IntLiteral)     (Lit Int{}) = True
+exprMatchesType (Just WordLiteral)    (Lit Word{}) = True
+exprMatchesType (Just FloatLiteral)   (Lit Float{}) = True
+exprMatchesType (Just DoubleLiteral)  (Lit Double{}) = True
+exprMatchesType (Just BooleanLiteral) (Lit Boolean{}) = True
+exprMatchesType (Just CharLiteral)    (Lit Char{}) = True
+exprMatchesType (Just StringLiteral)  (Lit String{}) = True
+exprMatchesType (Just NullLiteral)    (Lit Null) = True
+exprMatchesType Nothing _ = True
+exprMatchesType _ _ = False
