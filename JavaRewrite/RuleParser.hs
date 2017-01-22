@@ -13,7 +13,7 @@ import Text.Parsec.Pos
 type P = Parsec [L Token] ()
 
 rules :: P [Rule]
-rules = rule `sepBy` (tok SemiColon *> tok SemiColon)
+rules = many (rule <* opt (tok SemiColon *> tok SemiColon))
 
 rule :: P Rule
 rule = 
