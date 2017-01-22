@@ -1,12 +1,12 @@
 -- | Generic traversals for Java AST.
-{-# LANGUAGE DefaultSignatures, FlexibleContexts, FlexibleInstances, TypeOperators, DeriveGeneric, MultiParamTypeClasses #-}
+{-# LANGUAGE DefaultSignatures, FlexibleContexts, FlexibleInstances, TypeOperators,
+    DeriveGeneric, MultiParamTypeClasses, UndecidableInstances #-}
 module JavaRewrite.Traversals where
 
 import GHC.Generics
 import Language.Java.Syntax
 
--- | 'Substructure s a' states that either @a ~ s@ or @a@ possibly contains
--- some values of type @s@.
+-- | 'Substructure s a' states that @a@ possibly contains some values of type @s@.
 class Substructure s a where
   -- | Traverse the values of type 's' in 'a'.
   substructure :: Applicative f => (s -> f s) -> a -> f a
@@ -34,20 +34,20 @@ instance (GSubstructure Exp a, GSubstructure Exp b) => GSubstructure Exp (a :*: 
 instance Substructure Exp a => GSubstructure Exp (K1 i a) where
   gsubstruct inj (K1 x) = K1 <$> substructure inj x
 
+-- Base case: Don't recurse further if Exp is found
+instance {-# OVERLAPPING #-} GSubstructure Exp (K1 i Exp) where
+  gsubstruct inj = undefined
+
 -- Definitions for base types
 instance Substructure Exp Bool where substructure = emptyTraversal
 instance Substructure Exp Char where substructure = emptyTraversal
 
-instance Substructure Exp a => Substructure Exp (Maybe a)
-instance Substructure Exp a => Substructure Exp [a]
+instance GSubstructure Exp (K1 R a) => Substructure Exp (Maybe a)
+instance GSubstructure Exp (K1 R a) => Substructure Exp [a]
 instance (Substructure Exp a, Substructure Exp b) => Substructure Exp (a, b)
 
 emptyTraversal :: Applicative f => (a -> f a) -> b -> f b
 emptyTraversal _ = pure
-
--- Base case: Don't recurse further if Exp is found
-instance Substructure Exp Exp where
-  substructure = id
 
 --------------------------------------------------------------------------------
 -- BEGIN MOST BEAUTIFUL CODE IN THIS PROJECT
