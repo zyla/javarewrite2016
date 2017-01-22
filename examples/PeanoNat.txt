@@ -1,0 +1,4 @@
+// Addition in Peano arithmetic
+
+forall n m. plus(S(n), m)  -> S(plus(n, m)) ;;
+forall m.   plus(Z,    m)  -> m             ;;

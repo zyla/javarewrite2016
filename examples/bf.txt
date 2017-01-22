@@ -1,0 +1,30 @@
+forall a b c. (a ^ b) ^ c -> a ^ (b ^ c) ;;
+
+// Machine state: bf(is, l, v, r)
+// where
+//  is - list of instructions
+//  l - left side of the tape  \
+//  v - current tape value      -  Huet zipper
+//  r - right side of the tape /
+
+// Numbers: S(n) | Z
+
+// Lists: x ^ xs | nil
+// [1,2,3] is 1 ^ 2 ^ 3 ^ nil
+
+forall is l v r. bf(PLUS ^ is, l, v, r)      -> bf(is, l, S(v), r)   ;;
+
+forall is l v r. bf(MINUS ^ is, l, S(v), r)  -> bf(is, l, v, r)  ;;
+forall is l v r. bf(MINUS ^ is, l, Z, r)     -> bf(is, l, v, r)  ;;
+
+forall is l v r. bf(LEFT ^ is, l, v, r)      -> bf(is, tail(l), head(l), v ^ r)  ;;
+forall is l v r. bf(RIGHT ^ is, l, v, r)     -> bf(is, v ^ l, head(r), tail(r))  ;;
+
+forall body is l r.   bf(LOOP(body) ^ is, l, Z, r)       -> bf(is, l, Z, r)                         ;;
+forall body is l n r. bf(LOOP(body) ^ is, l, S(n), r)    -> bf(body ^ LOOP(body) ^ is, l, S(n), r)  ;;
+
+head(nil) -> Z ;;
+forall x xs. head(x ^ xs) -> x ;;
+
+tail(nil) -> nil ;;
+forall x xs. tail(x ^ xs) -> xs ;;
