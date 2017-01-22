@@ -51,6 +51,10 @@ matchPattern metavars = go
       , length pargs == length eargs
          = go pobj eobj <> mconcat (zipWith go pargs eargs)
 
+    go (MethodInv (MethodCall pname pargs)) (MethodInv (MethodCall ename eargs))
+      | pname == ename
+         = mconcat (zipWith go pargs eargs)
+
     go (BinOp pl pop pr) (BinOp el eop er)
       | pop == eop
          = go pl el <> go pr er

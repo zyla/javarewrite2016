@@ -124,6 +124,10 @@ main = hspec $ do
     it "recognizes x.println" $ do
       match "forall x. x.println(17)" "System.out.println(17)" `shouldBe` Just ["x" ~> "System.out"]
 
+    it "recognizes method invocation without receiver" $ do
+      match "S(Z)" "S(Z)" `shouldBe` Just []
+      match "foo(Z)" "S(Z)" `shouldBe` Nothing
+
   describe "applySubst" $ do
     it "empty substitution does nothing" $ do
       property $ forAll (genExp 5) $ \e ->
