@@ -29,17 +29,32 @@ Wynik:
 System.println(“To jest kot\nktóry jest rudy”);
 ```
 
-## Reguły
+## Instrukcja Obsługi
+Aplikacja jest napisana przy użyciu języka Haskell, zatem do jej uruchomienia
+potrzebny jest program Stack dodany do zmiennej środowiskowej $PATH.
 
-TODO: napisać bardziej po polsku
+Aby zbudować projekt wykorzystując narzędzie Stack należy w katalogu projetku:
+```bash
+$ stack setup
+```
+Aby uruchomić projekt, należy po zbudowaniu :
+
+```bash
+$ stack exec javarewrite2016 -- rules.txt test.java
+
+```
+gdzie rules.txt - plik zawierający reguły optymalizacji kodu zapisane zgodnie
+ze składnią omówioną poniżej w sekcji Reguły  
+test.java - Plik źródłowy java, który zostanie poddany optymalizacji
+
+## Reguły
 
 Postanowiliśmy zmodyfikować składnię reguł przedstawionych w przykładzie.
 
 Pierwszą z modyfikacji jest zmiana sposobu rozróżniania odwołań do zmiennych
-Javy of zmiennych języka reguł (dalej: metazmiennych). W składni użytej w tym
-programie nie różnią się one składniowo; dla każdej reguły wymienione są
-identyfikatory, które mają być traktowane jako metazmienne. Na przykład, w
-regule
+Javy od zmiennych języka reguł (dalej: metazmiennych). W składni użytej w tym
+programie nie są one rozróżnialne syntaktycznie; dla każdej reguły wymienione są
+identyfikatory, które mają być traktowane jako metazmienne. Na przykład:
 
 ```java
 forall a. a + b -> b + a
@@ -67,8 +82,8 @@ Metavariable:
   Identifier
 ```
 
-Konwencja zapisu gramatyki, jak i nieterminale `Expression` i `Identifier` są
-zdefiniowane w _Java Language Specification, 2. Grammars_[^jls-grammars].
+Konwencja zapisu gramatyki, jak i symbole nieterminalne `Expression` i `Identifier`
+są zdefiniowane w _Java Language Specification, 2. Grammars_[^jls-grammars].
 
 [^jls-grammars]: <https://docs.oracle.com/javase/specs/jls/se8/html/jls-2.html>
 
