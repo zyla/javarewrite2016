@@ -1,10 +1,13 @@
 {-# OPTIONS_GHC -Werror -Wincomplete-patterns #-}
+{-# LANGUAGE FlexibleContexts #-}
 module JavaRewrite.ApplySubst where
 
 import qualified Data.Map as M
 import Language.Java.Syntax
 import JavaRewrite.MatchResult
 import JavaRewrite.Syntax
+import JavaRewrite.Traversals
+import Data.Functor.Identity (Identity(..), runIdentity)
 
 -- | 'applySubst s e' is the result of replacing each variable present in @s@ with its substitution.
 --
@@ -26,7 +29,7 @@ applySubst subst = go
 
     go e | Just (obj, _, _, args, setObjArgs) <- fromInstanceMethodInvocationExp' e
       = setObjArgs (go obj) (map go args)
-  
+
     -- leaves - do nothing to them
     go e@Lit{} = e
     go e@ClassLit{} = e
@@ -35,12 +38,16 @@ applySubst subst = go
     go e@MethodRef{} = e
 
     -- branches - go through subexpressions
-    go e@InstanceCreation{} = e -- FIXME
-    go e@QualInstanceCreation{} = e -- FIXME
+    go e@(InstanceCreation _ _ _ _)
+      = mapSubexpressions go e
+    go e@(QualInstanceCreation _ _ _ _ _)
+      = mapSubexpressions go e
     go (ArrayCreate typ exps dims)
       = ArrayCreate typ (map go exps) dims
-    go e@ArrayCreateInit{} = e -- FIXME
-    go e@FieldAccess{} = e -- FIXME
+    go e@(ArrayCreateInit _ _ _)
+      = mapSubexpressions go e
+    go e@(FieldAccess _)
+      = mapSubexpressions go e
 
     -- NB: This case is not redundant; a method call without receiver specified
     -- is not handled by @fromInstanceMethodInvocationExp@
@@ -74,5 +81,9 @@ applySubst subst = go
     go (BinOp e1 op e2) = BinOp (go e1) op (go e2)
     go (InstanceOf e typ) = InstanceOf (go e) typ
     go (Cond cond iffalse iftrue) = Cond (go cond) (go iffalse) (go iftrue)
-    go e@Assign{} = e -- FIXME
-    go e@Lambda{} = e -- FIXME
+    go e@(Assign _ _ _) = e -- FIXME
+    go e@Lambda{} = mapSubexpressions go e
+
+
+mapSubexpressions :: (Exp -> Exp) -> Exp -> Exp
+mapSubexpressions go = runIdentity . subexpressions (Identity . go)

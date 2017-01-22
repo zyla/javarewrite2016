@@ -51,7 +51,7 @@ main = hspec $ do
 
   describe "unsnoc" $
     it "works" $
-      property $ \(xs :: [Int]) (y :: Int) -> 
+      property $ \(xs :: [Int]) (y :: Int) ->
         unsnoc (xs ++ [y]) === Just (xs, y)
 
   describe "matchPattern" $ do
@@ -164,20 +164,20 @@ main = hspec $ do
     substExamplePending "(A).foo = 1"
 
     -- InstanceCreation
-    substExamplePending "new T(A)"
-    substExamplePending "new T[] { A }"
-    substExamplePending "A.new T(A)"
+    substExample "new T(A)"
+    substExample "new T[] { A }"
+    substExample "A.new T(A)"
 
     -- lambda
-    substExamplePending "x -> A"
+    substExample "x -> A"
     -- TODO: avoiding capture?
 
     -- TODO: explain why there's A.foo and (A).foo
 
-  let testRules = 
+  let testRules =
        [ "forall a. ~a -> a"
        , "forall a. !a -> a" ]
-  
+
   describe "applyRules" $ do
     it "double success" $ do
       applyRules testRules "~!a"
