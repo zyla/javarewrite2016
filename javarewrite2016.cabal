@@ -16,6 +16,7 @@ library
                        JavaRewrite.RuleParser
                        JavaRewrite.ApplySubst
                        JavaRewrite.Syntax
+                       JavaRewrite.Rewriter
 
                        RandomStuff
 
