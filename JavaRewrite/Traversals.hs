@@ -36,7 +36,7 @@ instance Substructure Exp a => GSubstructure Exp (K1 i a) where
 
 -- Base case: Don't recurse further if Exp is found
 instance {-# OVERLAPPING #-} GSubstructure Exp (K1 i Exp) where
-  gsubstruct inj = undefined
+  gsubstruct inj (K1 x) = K1 <$> inj x
 
 -- Definitions for base types
 instance Substructure Exp Bool where substructure = emptyTraversal
