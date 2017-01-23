@@ -186,20 +186,20 @@ _JavaRewrite/Traversals.hs_ - Moduł zawierający funkcje umożliwiające przech
 W wyniku naszego projektu, jesteśmy w stanie optymalizować kod na poziomie reguł dotyczących  
 wyrażeń (Expression) w języku Java. Składa się na to :  
 1. Wyrażenia będące nazwami klas, interfejsów, prymitywów, itp.  
-1. Referencje do obiektów  
-1. Wyrażenia tworzące nowe obiekty (w tym tablice oraz tworzenie typów wewnętrznych dla klas)  
-1. Wywołania metod  
-1. Dostęp do tablicy  
-1. Post/pre inkrementacja  
-1. Post/pre dekrementacja  
-1. Operacje dodawania i odejmowania  
-1. Rzutowania  
-1. Operacje bitowe  
-1. Operator InstanceOf  
-1. Instrukcje warunkowe  
-1. Wyrażenia Lambda  
-1. Referencje do metod  
-1. Obliczanie wyrażen na podstawie stałych znanych w czasie kompilacji (constant folding)  
+2. Referencje do obiektów  
+3. Wyrażenia tworzące nowe obiekty (w tym tablice oraz tworzenie typów wewnętrznych dla klas)  
+4. Wywołania metod  
+5. Dostęp do tablicy  
+6. Post/pre inkrementacja  
+7. Post/pre dekrementacja  
+8. Operacje dodawania i odejmowania  
+9. Rzutowania  
+10. Operacje bitowe  
+11. Operator InstanceOf  
+12. Instrukcje warunkowe  
+13. Wyrażenia Lambda  
+14. Referencje do metod  
+15. Obliczanie wyrażen na podstawie stałych znanych w czasie kompilacji (constant folding)  
 
 ## Ograniczenia
 
