@@ -32,27 +32,7 @@ applySubst subst = go
     go e | Just (obj, _, _, args, setObjArgs) <- fromInstanceMethodInvocationExp' e
       = setObjArgs (go obj) (map go args)
 
-    -- leaves - do nothing to them
-    go e@Lit{} = e
-    go e@ClassLit{} = e
-    go e@This = e
-    go e@ThisClass{} = e
-    go e@MethodRef{} = e
-
-    -- branches - go through subexpressions
-    go e@(InstanceCreation _ _ _ _)
-      = mapSubexpressions go e
-    go e@(QualInstanceCreation _ _ _ _ _)
-      = mapSubexpressions go e
-    go (ArrayCreate typ exps dims)
-      = ArrayCreate typ (map go exps) dims
-    go e@(ArrayCreateInit _ _ _)
-      = mapSubexpressions go e
-    go e@(FieldAccess _)
-      = mapSubexpressions go e
-
-    -- NB: This case is not redundant; a method call without receiver specified
-    -- is not handled by @fromInstanceMethodInvocationExp@
+    -- constant folding
     go (MethodInv (MethodCall name args))
       | name == Name [Ident "constant_fold"]
       , [operation] <- args
@@ -60,36 +40,9 @@ applySubst subst = go
         = Lit res
       | otherwise = MethodInv (MethodCall name (map go args))
 
-    go (MethodInv (PrimaryMethodCall obj tys name args))
-      = error "Redundant pattern, should be handled by fromInstanceMethodInvocationExp"
-
-    go (MethodInv (SuperMethodCall tys name args))
-      = MethodInv (SuperMethodCall tys name (map go args))
-
-    go (MethodInv (ClassMethodCall ty tys name args))
-      = MethodInv (ClassMethodCall ty tys name (map go args))
-
-    go (MethodInv (TypeMethodCall ty tys name args))
-      = MethodInv (TypeMethodCall ty tys name (map go args))
-
-    go (ArrayAccess (ArrayIndex array dims))
-      = ArrayAccess (ArrayIndex (go array) (map go dims))
-
-    go (PostIncrement e) = PostIncrement (go e)
-    go (PostDecrement e) = PostDecrement (go e)
-    go (PreIncrement e) = PreIncrement (go e)
-    go (PreDecrement e) = PreDecrement (go e)
-    go (PrePlus e) = PrePlus (go e)
-    go (PreMinus e) = PreMinus (go e)
-    go (PreBitCompl e) = PreBitCompl (go e)
-    go (PreNot e) = PreNot (go e)
-    go (Cast typ e) = Cast typ (go e)
-    go (BinOp e1 op e2) = BinOp (go e1) op (go e2)
-    go (InstanceOf e typ) = InstanceOf (go e) typ
-    go (Cond cond iffalse iftrue) = Cond (go cond) (go iffalse) (go iftrue)
     go e@(Assign _ _ _) = e -- FIXME
-    go e@Lambda{} = mapSubexpressions go e
 
+    go e = mapSubexpressions go e
 
     constEvalTreeCalc :: Exp -> Maybe Literal
     constEvalTreeCalc (BinOp lhs op rhs) =
@@ -99,7 +52,7 @@ applySubst subst = go
       | otherwise = Nothing
     constEvalTreeCalc _ = Nothing
 
-
+-- | Map a function over immediate subexpressions of an expression.
 mapSubexpressions :: (Exp -> Exp) -> Exp -> Exp
 mapSubexpressions go = runIdentity . subexpressions (Identity . go)
 
@@ -143,5 +96,5 @@ calcFolding op (Boolean a) (Boolean b) =
     COr -> Just $ Boolean (a || b)
     Xor -> Just $ Boolean (a `xor` b)
     _ -> Nothing
-calcFolding _ Null Null = Just Null
+calcFolding _ Null Null = Just Null -- FIXME this is an error
 calcFolding _ _ _ = Nothing
