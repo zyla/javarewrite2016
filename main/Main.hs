@@ -30,7 +30,7 @@ main = do
     Right result -> putStrLn (prettyPrint result)
 
 showRewriteError :: RewriteError -> String
-showRewriteError ConstantFoldingFailed = "Constant folding failed"
+showRewriteError (ConstantFoldingFailed detail) = "Constant folding failed: " ++ detail
 
 parseArgs :: IO (String, String)
 parseArgs = do

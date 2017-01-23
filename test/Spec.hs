@@ -5,6 +5,7 @@ module Main where
 
 import Data.Monoid
 import Data.String
+import Data.Either
 
 import Test.Hspec
 import Test.QuickCheck
@@ -146,17 +147,22 @@ main = hspec $ do
     it "leaves other variables alone" $ do
       applySubst ["a" ~> "foo"] "b" `shouldBe` "b"
 
+  describe "evalConstantFoldMacros" $ do
     it "handles constant folding" $ do
-      applySubst ["a" ~> "1", "b" ~> "2"] "constant_fold(a + b)" `shouldBe` "3"
-      applySubst ["a" ~> "4", "b" ~> "2"] "constant_fold(a * b)" `shouldBe` "8"
-      applySubst ["a" ~> "\"asd\"", "b" ~> "\"1234\""] "constant_fold(a + b)"
-        `shouldBe` Lit (String "asd1234")
-      applySubst ["a" ~> "true", "b" ~> "false"] "constant_fold(a || b)"
-        `shouldBe` Lit (Boolean True)
-      applySubst ["a" ~> "true", "b" ~> "false"] "constant_fold(a && b)"
-        `shouldBe` Lit (Boolean False)
-      applySubst ["a" ~> "true", "b" ~> "false"] "constant_fold(a ^ b)"
-        `shouldBe` Lit (Boolean True)
+      evalConstantFoldMacros "constant_fold(1 + 2)" `shouldBe` Right "3"
+      evalConstantFoldMacros "constant_fold(4 * 2)" `shouldBe` Right "8"
+      evalConstantFoldMacros "constant_fold(\"asd\" + \"1234\")"
+        `shouldBe` Right (Lit (String "asd1234"))
+      evalConstantFoldMacros "constant_fold(true || false)"
+        `shouldBe` Right (Lit (Boolean True))
+      evalConstantFoldMacros "constant_fold(true && false)"
+        `shouldBe` Right (Lit (Boolean False))
+      evalConstantFoldMacros "constant_fold(true ^ false)"
+        `shouldBe` Right (Lit (Boolean True))
+
+      evalConstantFoldMacros "constant_fold(3 * 7 + 2)" `shouldBe` Right "23"
+
+      evalConstantFoldMacros "constant_fold(n + 1)" `shouldSatisfy` isLeft
 
 
     substExample "A"

@@ -5,7 +5,6 @@ import Control.Monad
 import Data.Monoid (Any(..))
 
 import Data.Functor.Identity
-import Control.Monad.Except
 import Control.Monad.Writer
 
 import Language.Java.Syntax
@@ -14,24 +13,25 @@ import JavaRewrite.Rule
 import JavaRewrite.Match
 import JavaRewrite.ApplySubst
 import JavaRewrite.Traversals
+import JavaRewrite.Types
+import JavaRewrite.ConstantFold
 
-data RewriteError = ConstantFoldingFailed
-  deriving (Show, Eq)
-
-type Rewrite = WriterT Any (ExceptT RewriteError Identity)
+type Rewrite = WriterT Any (Either RewriteError)
 
 markSuccess :: Rewrite ()
 markSuccess = tell (Any True)
 
 runRewrite :: Rewrite a -> Either RewriteError a
-runRewrite = fmap fst . runExcept . runWriterT
+runRewrite = fmap fst . runWriterT
 
 -- | Rewrite a rule immediately to the expression.
 -- Returns @Just new_expr@ if it succeeded, @Nothing@ otherwise.
 applyRule :: Rule -> Exp -> Rewrite Exp
 applyRule (Rule pattern rhs) exp =
     case match pattern exp of
-      Just subst -> markSuccess >> return (applySubst subst rhs)
+      Just subst -> do
+        markSuccess
+        lift $ evalConstantFoldMacros (applySubst subst rhs)
       Nothing    -> return exp
 
 -- | Rewrite a set of rules to an expression in turn. Succeeds if any of the rules succeeded.

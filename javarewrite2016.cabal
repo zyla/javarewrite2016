@@ -19,6 +19,8 @@ library
                        JavaRewrite.Syntax
                        JavaRewrite.Traversals
                        JavaRewrite.Rewrite
+                       JavaRewrite.Types
+                       JavaRewrite.ConstantFold
 
                        RandomStuff
 
