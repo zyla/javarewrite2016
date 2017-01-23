@@ -97,6 +97,26 @@ pasuje do wyrażenia `"EiTI"`, ale nie do `17` lub `new Object().toString()`.
   workshop 2001.
   <http://research.microsoft.com/en-us/um/people/simonpj/Papers/rules.htm>
 
+### Kolejność stosowania reguł
+
+Reguły są stosowane w następującej kolejności (do każdego wyrażenia w pliku które nie jest podwyrażeniem innego wyrażenia):
+
+1. Dopóki któraś z reguł pasuje, jest ona aplikowana do wyrażenia po czym wykonywany jest constant folding.
+2. Procedura jest aplikowana do każdego podwyrażenia w wyniku powyższej transformacji.
+
+Powyższa procedura jest powtarzana aż żadna z reguł nie zostanie zaaplikowana w pełnym przebiegu.
+
+
+### Constant folding
+Po wykonaniu każdej reguły każde wyrażenie w postaci `constant_fold(...)` jest wyliczane.
+`constant_fold(e)` jest zamieniane na wynik operacji wyrażenia _e_, jeśli składa się tylko ze stałych operacji arytmetycznych i łączenia stringów, np:  
+
+```
+forall (a : StringLiteral) (b : StringLiteral).
+  a + b -> constant_fold(a + b)
+```
+
+
 ### Semantyka reguł
 
 Podstawową operacją wykonywaną na wzorcach jest _dopasowanie wzorca do
@@ -183,6 +203,10 @@ Java (moduł `JavaRewrite.RuleParser`). Biblioteka nie jest jednak w pełni
 dopracowana, więc w celu jej użycia było konieczne poprawienie niektórych
 defektów[^bug-ClassFieldAccess][^bug-precedence][^bug-QualInstanceCreation].
 
+### Testowanie programu
+
+Do najważniejszych funkcji programu zostały napisane testy jednostkowe (_test/Spec.hs_). Niektóre właściwości zostały sprawdzone za pomocą _QuickCheck_.
+
 [haskell]: https://www.haskell.org/
 
 [^language-java]: <https://hackage.haskell.org/package/language-java>
@@ -206,7 +230,7 @@ w działaniu algorytmu :
 
 Następnie rozpoczyna pracę głowny algorytm zajmujący się przetwarzaniem kodu.  
 
-Optymalizacja kodu przebiega z użyciem rozpoznawania wzorców w kodzie na podstawie
+Przekształcenie kodu przebiega z użyciem rozpoznawania wzorców w kodzie na podstawie
 prawie wszystkich elementów języka (nie wszystkie rodzaje wyrażeń są obsługiwane).
 
 ## Organizacja plików
@@ -225,27 +249,38 @@ _JavaRewrite/Traversals.hs_ - Moduł zawierający funkcje umożliwiające przech
 
 ## Wnioski dotyczące osiągniętych rezultatów
 
-W wyniku naszego projektu, jesteśmy w stanie optymalizować kod na poziomie reguł dotyczących  
-wyrażeń (Expression) w języku Java. Składa się na to :  
-1. Wyrażenia będące nazwami klas, interfejsów, prymitywów, itp.  
-2. Post/pre inkrementacja  
-3. Post/pre dekrementacja  
-4. Operacje dodawania i odejmowania  
-5. Rzutowania  
-6. Operacje bitowe  
-7. Operator InstanceOf  
-8. Instrukcje warunkowe  
-9. Referencje do metod  
-10. Obliczanie wyrażen na podstawie stałych znanych w czasie kompilacji (constant folding)  
+W wyniku naszego projektu, jesteśmy w stanie przekształcać kod na poziomie reguł dotyczących wyrażeń (Expression) w języku Java. Składa się na to:
+
+1. Wyrażenia będące nazwami klas, interfejsów, prymitywów, itp.
+2. Post/pre inkrementacja
+3. Post/pre dekrementacja
+4. Operacje dodawania i odejmowania
+5. Rzutowania
+6. Operacje bitowe
+7. Operator `instanceof`
+8. Instrukcje warunkowe
+9. Referencje do metod
+10. Obliczanie wyrażen na podstawie stałych znanych w czasie kompilacji (constant folding)
+
+Niestety w Javie można wyrazić niewiele użytecznych reguł za pomocą tego języka. Istniała wręcz obawa, że niniejszy program okaże się bezużyteczny. Okazało się jednak że może on zostać użyty jako bardzo niewygodny w użyciu i niezwykle mało wydajny funkcyjny język programawania. Przykładowo - _examples/bf.[txt|java]_ - implementuje interpreter języka Brainfuck.  
+Dodanie do naszego programu funkcjonalności obsługi instrukcji (Statement) w sposób niewielki zwiększyłoby jego realną użyteczność. W celu optymalizacji należałoby wykroczyć poza mechanizm reguł - przez transformacje niemożliwe do wyrażenia za pomocą języka reguł (np. inlining, propagracja stałych, wyciąganie niezmienników pętli).
 
 ## Ograniczenia
 
-Nie wszystkie elementy języka zostały pokryte  w naszym projekcie, w wyniku czego przeprowadzanie  
-części optymalizacji nie jest możliwe.  
-Nie została zaimplementowana obsługa pełńych instrukcji (Statement) oraz niektóre rodzaje wyrażeń: 
+Nie wszystkie elementy języka zostały pokryte  w naszym projekcie, w wyniku czego przeprowadzanie części przekształceń nie jest możliwe.  
+Nie została zaimplementowana obsługa pełnych instrukcji (Statement) oraz niektóre rodzaje wyrażeń:
+
 1. Przypisanie wyniku wyrażenia do zmiennej
 2. Wyrażenia Lambda
 3. Referencje do metod oraz wywołania metod
 4. Odwołania do tablic oraz ich tworzenie
-Nie została zaimplementowana również obsługa na poziomie całych bloków zawierających  
-w sobie instrukcje oraz wyrażenia.  
+
+Nie została zaimplementowana również obsługa na poziomie całych bloków zawierających w sobie instrukcje oraz wyrażenia.  
+
+Na autorze reguł spoczywa obowiązek sprawdzenia, czy zestaw reguł jest confluenty i zapewnia, że przekształcenia zakończą się.
+Automatyczne sprawdzanie reguł jest niemożliwe:  
+Dowód nie wprost:  
+Załóżmy, że istnieje algorytm sprawdzający, czy dla danego zestawu reguł i kodu w Javie program się zakończy.  
+Podajemy algortmowi program w brainfucku.  
+On stwierdza, czy program się zakończy.  
+W ten sposób uzyskaliśmy procedure sprawdzenia, czy dowolny program napisany w Brainfucku się zakończy. Język ten jest Turing-complete, więc taka procedura nie może istnieć => sprzeczność.  
