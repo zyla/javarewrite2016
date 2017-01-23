@@ -183,10 +183,27 @@ _JavaRewrite/Traversals.hs_ - Moduł zawierający funkcje umożliwiające przech
 
 ## Wnioski dotyczące osiągniętych rezultatów
 
-W tego typu optymalizacji, osiągnięte rezultaty są wprost proporcjonalne
-do jakości zastosowanych reguł optymalizacyjnych.  
-Niezależnie jednak od zestawu wzorców zysk wydajnościowy otrzymanego kodu jest niewielki, bowiem
-jest to jedynie mikrooptymalizacja.  
-Istnieje oczywiście cała wielka rodzina przypadków w których możemy zyskać zaskakującą poprawe
-wydajności, jednakże język Java nie oferuje tak ogromnych możliwości mikrooptymalizacji jak np C++,
-gdzie możemy oszczędzić mnóstwo czasu manipulując sposobem przekazywania parametrów.
+W wyniku naszego projektu, jesteśmy w stanie optymalizować kod na poziomie reguł dotyczących  
+wyrażeń (Expression) w języku Java. Składa się na to :  
+1. Wyrażenia będące nazwami klas, interfejsów, prymitywów, itp.  
+1. Referencje do obiektów  
+1. Wyrażenia tworzące nowe obiekty (w tym tablice oraz tworzenie typów wewnętrznych dla klas)  
+1. Wywołania metod  
+1. Dostęp do tablicy  
+1. Post/pre inkrementacja  
+1. Post/pre dekrementacja  
+1. Operacje dodawania i odejmowania  
+1. Rzutowania  
+1. Operacje bitowe  
+1. Operator InstanceOf  
+1. Instrukcje warunkowe  
+1. Wyrażenia Lambda  
+1. Referencje do metod  
+1. Obliczanie wyrażen na podstawie stałych znanych w czasie kompilacji (constant folding)  
+
+## Ograniczenia
+
+Nie wszystkie elementy języka zostały pokryte  w naszym projekcie, w wyniku czego przeprowadzanie  
+części optymalizacji nie jest możliwe. Nie została zaimplementowana obsługa pełńych instrukcji (Statement)
+oraz niektóre rodzaje wyrażeń jak np. przypisanie wyniku wyrażenia do zmiennej.
+
