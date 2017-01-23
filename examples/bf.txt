@@ -1,4 +1,9 @@
-forall a b c. (a ^ b) ^ c -> a ^ (b ^ c) ;;
+// A simple Brainfuck interpreter
+// Transforms expressions in form `run_bf(program)` into the result (value
+// of selected cell) of running the list of instructions `program`.
+
+// Initially the tape is filled with zeros.
+forall program. run_bf(program)  ->  bf(program, nil, Z, nil)  ;;
 
 // Machine state: bf(is, l, v, r)
 // where
@@ -7,21 +12,36 @@ forall a b c. (a ^ b) ^ c -> a ^ (b ^ c) ;;
 //  v - current tape value      -  Huet zipper
 //  r - right side of the tape /
 
+// PLUS: increment current cell
+forall is l v r. bf(PLUS ^ is, l, v, r)      -> bf(is, l, S(v), r)   ;;
+
+// MINUS: decrement current cell
+forall is l v r. bf(MINUS ^ is, l, S(v), r)  -> bf(is, l, v, r)  ;;
+forall is l v r. bf(MINUS ^ is, l, Z, r)     -> bf(is, l, v, r)  ;;
+
+// LEFT: move one cell to the left
+forall is l v r. bf(LEFT ^ is, l, v, r)      -> bf(is, tail(l), head(l), v ^ r)  ;;
+// RIGHT: move one cell to the right
+forall is l v r. bf(RIGHT ^ is, l, v, r)     -> bf(is, v ^ l, head(r), tail(r))  ;;
+
+// LOOP(is): repeat is while current cell is not zero
+forall body is l r.   bf(LOOP(body) ^ is, l, Z, r)       -> bf(is, l, Z, r)                         ;;
+forall body is l n r. bf(LOOP(body) ^ is, l, S(n), r)    -> bf(body ^ LOOP(body) ^ is, l, S(n), r)  ;;
+
+// Finished program: convert current cell value to int
+forall l v r. bf(nil, l, v, r)   ->   nat_to_int(v) ;;
+
 // Numbers: S(n) | Z
+nat_to_int(Z)              -> 0 ;;
+forall n. nat_to_int(S(n)) -> 1 + nat_to_int(n) ;;
+
+forall (n : IntLiteral) (m : IntLiteral). n + m -> constant_fold(n + m) ;;
 
 // Lists: x ^ xs | nil
 // [1,2,3] is 1 ^ 2 ^ 3 ^ nil
 
-forall is l v r. bf(PLUS ^ is, l, v, r)      -> bf(is, l, S(v), r)   ;;
-
-forall is l v r. bf(MINUS ^ is, l, S(v), r)  -> bf(is, l, v, r)  ;;
-forall is l v r. bf(MINUS ^ is, l, Z, r)     -> bf(is, l, v, r)  ;;
-
-forall is l v r. bf(LEFT ^ is, l, v, r)      -> bf(is, tail(l), head(l), v ^ r)  ;;
-forall is l v r. bf(RIGHT ^ is, l, v, r)     -> bf(is, v ^ l, head(r), tail(r))  ;;
-
-forall body is l r.   bf(LOOP(body) ^ is, l, Z, r)       -> bf(is, l, Z, r)                         ;;
-forall body is l n r. bf(LOOP(body) ^ is, l, S(n), r)    -> bf(body ^ LOOP(body) ^ is, l, S(n), r)  ;;
+// always right-associate the cons
+forall a b c. (a ^ b) ^ c -> a ^ (b ^ c) ;;
 
 head(nil) -> Z ;;
 forall x xs. head(x ^ xs) -> x ;;

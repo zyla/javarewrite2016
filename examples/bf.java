@@ -1,7 +1,7 @@
 // A simple Brainfuck program to compute 3*5 and obtain 15.
 
 class BF {
-    int compute_3x5 = bf(
+    int compute_3x5 = run_bf(
         // put 3 in cell 0
         PLUS ^ PLUS ^ PLUS
         // put 5 in cell 1
@@ -31,6 +31,5 @@ class BF {
         ^ LEFT ^ LEFT ^ LEFT
         )
       ^ RIGHT ^ RIGHT // cell 2 contains the result (15)
-      ^ nil,
-      nil, Z, nil);
+      ^ nil);
 }
