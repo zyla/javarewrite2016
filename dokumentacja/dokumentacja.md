@@ -29,13 +29,16 @@ Wynik:
 System.println(“To jest kot\nktóry jest rudy”);
 ```
 
-## Instrukcja Obsługi
-Aplikacja jest napisana przy użyciu języka Haskell, zatem do jej uruchomienia
-potrzebny jest program Stack dodany do zmiennej środowiskowej $PATH.
+## Instrukcja obsługi
 
-Aby zbudować projekt wykorzystując narzędzie Stack należy w katalogu projektu:
+Aplikacja jest napisana przy użyciu języka Haskell, zatem do jej uruchomienia
+potrzebny jest program Stack dodany do zmiennej środowiskowej `PATH`.
+
+Aby zbudować projekt wykorzystując narzędzie Stack należy w katalogu projektu
+uruchomić:
 ```bash
-$ stack setup
+$ stack setup     # jeśli nie ma w systemie zainstalowanego GHC 8.0.1
+$ stack build
 ```
 Aby uruchomić projekt, należy po zbudowaniu:
 
@@ -52,7 +55,13 @@ gdzie
 ## Reguły
 
 Reguła składa się ze _zbioru metazmiennych_, _wyrażenia wzorca_ (dalej: LHS) i _wyrażenia
-podstawianego_ (dalej RHS).
+podstawianego_ (dalej RHS), w następującej składni:
+
+```
+forall a b c. lhs -> rhs
+```
+
+Składnia jest zainspirowana funkcją `RULES` kompilatora GHC[^ghc-rules].
 
 Zbiór metazmiennych jest to zbiór identyfikatorów, które w RHS mają być
 traktowane jako metazmienne (zamiast rozróżnienia składniowego typu poprzedzenie
@@ -78,6 +87,11 @@ forall (s : StringLiteral). s
 ```
 
 pasuje do wyrażenia `"EiTI"`, ale nie do `17` lub `new Object().toString()`.
+
+[^ghc-rules]: "Playing by the rules: rewriting as a practical optimisation
+  technique in GHC". Simon Peyton Jones, Andrew Tolmach and Tony Hoare; Haskell
+  workshop 2001.
+  <http://research.microsoft.com/en-us/um/people/simonpj/Papers/rules.htm>
 
 ### Gramatyka języka reguł
 
