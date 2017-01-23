@@ -23,16 +23,21 @@ main = do
   rules <- readRules rulesFile
   javaCompilationUnit <- readJavaFile javaFile
 
-  putStrLn $ prettyPrint $ rewriteCompilationUnit rules javaCompilationUnit
+  case rewriteCompilationUnit rules javaCompilationUnit of
+
+    Left error -> failWithMessage $ showRewriteError error
+
+    Right result -> putStrLn (prettyPrint result)
+
+showRewriteError :: RewriteError -> String
+showRewriteError ConstantFoldingFailed = "Constant folding failed"
 
 parseArgs :: IO (String, String)
 parseArgs = do
   args <- getArgs
   case args of
     [rulesFile, javaFile] -> return (rulesFile, javaFile)
-    _ -> do
-      hPutStrLn stderr "Usage: javarewrite2016 <rules file> <java file>"
-      exitWith (ExitFailure 1)
+    _ -> failWithMessage "Usage: javarewrite2016 <rules file> <java file>"
 
 
 readRules :: FilePath -> IO [Rule]
@@ -41,8 +46,7 @@ readRules rulesFile = do
   case erules of
     Right rules -> return rules
     Left err -> do
-      hPutStrLn stderr $ "Error while loading rules' file\n" ++ (show err)
-      exitWith (ExitFailure 1)
+      failWithMessage $ "Error while loading rules' file\n" ++ show err
 
 
 readJavaFile :: FilePath -> IO CompilationUnit
@@ -51,5 +55,7 @@ readJavaFile javaFile = do
   case ejava of
     Right java -> return java
     Left err -> do
-      hPutStrLn stderr $ "Error while loading .java file\n" ++ (show err)
-      exitWith (ExitFailure 1)
+      failWithMessage $ "Error while loading .java file\n" ++ show err
+
+failWithMessage :: String -> IO a
+failWithMessage msg = hPutStrLn stderr msg >> exitWith (ExitFailure 1)

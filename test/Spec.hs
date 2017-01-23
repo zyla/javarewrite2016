@@ -229,7 +229,9 @@ main = hspec $ do
           , "forall a. !!+!!a -> ~a" ]
           "class X { int y = ~~+~~1; }"
         `shouldBe`
-          "class X { int y = ~1; }"
+          Right "class X { int y = ~1; }"
+
+rewriteSuccess x = markSuccess >> return x
 
 substExample = substExample' id
 

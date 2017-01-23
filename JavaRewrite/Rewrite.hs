@@ -4,6 +4,10 @@ module JavaRewrite.Rewrite where
 import Control.Monad
 import Data.Monoid (Any(..))
 
+import Data.Functor.Identity
+import Control.Monad.Except
+import Control.Monad.Writer
+
 import Language.Java.Syntax
 
 import JavaRewrite.Rule
@@ -11,45 +15,47 @@ import JavaRewrite.Match
 import JavaRewrite.ApplySubst
 import JavaRewrite.Traversals
 
-newtype RewriteResult a = RewriteResult (Any, a) deriving (Eq, Show, Functor, Applicative, Monad)
+data RewriteError = ConstantFoldingFailed
+  deriving (Show, Eq)
 
-rewriteSuccess :: a -> RewriteResult a
-rewriteSuccess exp = RewriteResult (Any True, exp)
+type Rewrite = WriterT Any (ExceptT RewriteError Identity)
 
-getResult :: RewriteResult a -> a
-getResult (RewriteResult (_, a)) = a
+markSuccess :: Rewrite ()
+markSuccess = tell (Any True)
 
-isSuccess :: RewriteResult a -> Bool
-isSuccess (RewriteResult (Any b, _)) = b
+runRewrite :: Rewrite a -> Either RewriteError a
+runRewrite = fmap fst . runExcept . runWriterT
 
--- | RewriteResult a rule immediately to the expression.
+-- | Rewrite a rule immediately to the expression.
 -- Returns @Just new_expr@ if it succeeded, @Nothing@ otherwise.
-applyRule :: Rule -> Exp -> RewriteResult Exp
+applyRule :: Rule -> Exp -> Rewrite Exp
 applyRule (Rule pattern rhs) exp =
     case match pattern exp of
-      Just subst -> rewriteSuccess (applySubst subst rhs)
+      Just subst -> markSuccess >> return (applySubst subst rhs)
       Nothing    -> return exp
 
--- | RewriteResult a set of rules to an expression in turn. Succeeds if any of the rules succeeded.
-applyRules :: [Rule] -> Exp -> RewriteResult Exp
+-- | Rewrite a set of rules to an expression in turn. Succeeds if any of the rules succeeded.
+applyRules :: [Rule] -> Exp -> Rewrite Exp
 applyRules = foldr (>=>) return . map applyRule
 
 -- | Repeat a transformation until it fails.
 -- Succeeds if the transformation succeeded at least once.
-repeatUntilFailure :: (a -> RewriteResult a) -> a -> RewriteResult a
-repeatUntilFailure transform x =
-  let result = transform x
-  in if isSuccess result
-     then repeatUntilFailure transform (getResult result) >>= rewriteSuccess
-     else result
+repeatUntilFailure :: (a -> Rewrite a) -> a -> Rewrite a
+repeatUntilFailure transform x = do
+  (x', Any success) <- lift $ runWriterT (transform x)
+  if success
+    then do
+      markSuccess
+      repeatUntilFailure transform x'
+    else return x'
 
--- | RewriteResult rules to each subexpression in a top-down manner.
-applyRulesTopdown :: [Rule] -> Exp -> RewriteResult Exp
+-- | Rewrite rules to each subexpression in a top-down manner.
+applyRulesTopdown :: [Rule] -> Exp -> Rewrite Exp
 applyRulesTopdown = repeatUntilFailure . topdown subexpressions . repeatUntilFailure . applyRules
 
--- | RewriteResult a set of rules to a value containing expressions.
-rewrite :: Substructure Exp a => [Rule] -> a -> RewriteResult a
-rewrite rules = expressions (applyRulesTopdown rules)
+-- | Rewrite a set of rules to a value containing expressions.
+rewrite :: Substructure Exp a => [Rule] -> a -> Either RewriteError a
+rewrite rules = runRewrite . expressions (applyRulesTopdown rules)
 
-rewriteCompilationUnit :: [Rule] -> CompilationUnit -> CompilationUnit
-rewriteCompilationUnit rules = getResult . rewrite rules
+rewriteCompilationUnit :: [Rule] -> CompilationUnit -> Either RewriteError CompilationUnit
+rewriteCompilationUnit = rewrite
