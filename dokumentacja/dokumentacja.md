@@ -51,41 +51,67 @@ gdzie
 
 ## Reguły
 
-Postanowiliśmy zmodyfikować składnię reguł przedstawioną z treści zadania.
+Reguła składa się ze _zbioru metazmiennych_, _wyrażenia wzorca_ (dalej: LHS) i _wyrażenia
+podstawianego_ (dalej RHS).
 
-Pierwszą z modyfikacji jest zmiana sposobu rozróżniania odwołań do zmiennych
-Javy od zmiennych języka reguł (dalej: metazmiennych). W składni użytej w tym
-programie nie są one rozróżnialne syntaktycznie; dla każdej reguły wymienione są
-identyfikatory, które mają być traktowane jako metazmienne. Na przykład:
+Zbiór metazmiennych jest to zbiór identyfikatorów, które w RHS mają być
+traktowane jako metazmienne (zamiast rozróżnienia składniowego typu poprzedzenie
+identyfikatora znakiem dolara).
+
+Przykład:
 
 ```java
 forall a. a + b -> b + a
 ```
 
-`a` jest metazmienną, natomiast `b` jest zmienną języka Java. Reguła pasuje do
-wyrażenia `3 * 5 + b`, ale nie do `a + 17`.
+`a` jest tutaj metazmienną, natomiast `b` jest zmienną języka Java. Reguła
+pasuje do wyrażenia `3 * 5 + b`, dając w wyniku `b + 3 * 5`, ale nie do
+`a + 17`.
+
+Metazmienne mogą dodatkowo mieć określony _typ wyrażenia_ jaki akceptują. W
+obecnej wersji programu są to różne rodzaje literałów.
+
+Na przykład wzorzec:
+
+```java
+forall (s : StringLiteral). s
+```
+
+pasuje do wyrażenia `"EiTI"`, ale nie do `17` lub `new Object().toString()`.
 
 ### Gramatyka języka reguł
 
 ```
 Rules:
-  [ Rule { ;; Rule } ]
+  [ Rule { ";;" Rule } ]
 
 Rule:
-  Pattern -> Expression
+  Pattern "->" Expression
 
 Pattern:
-  [ forall Metavariables . ] Expression
+  [ "forall" Metavariables "." ] Expression
 
 Metavariables:
   Metavariable { Metavariable }
 
 Metavariable:
   Identifier
+  "(" Identifier ":" ExpressionType ")"
+
+ExpressionType:
+  "IntLiteral"
+  "WordLiteral"
+  "FloatLiteral"
+  "DoubleLiteral"
+  "BooleanLiteral"
+  "CharLiteral"
+  "StringLiteral"
+  "NullLiteral"
 ```
 
 Konwencja zapisu gramatyki, jak i symbole nieterminalne `Expression` i `Identifier`
-są zdefiniowane w _Java Language Specification, 2. Grammars_[^jls-grammars].
+są zdefiniowane w _Java Language Specification, 2. Grammars_[^jls-grammars], z
+tą różnicą, że terminale są zawarte w znakach "`"`".
 
 [^jls-grammars]: <https://docs.oracle.com/javase/specs/jls/se8/html/jls-2.html>
 
