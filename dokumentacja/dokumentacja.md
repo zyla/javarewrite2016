@@ -1,5 +1,9 @@
 ---
 title: "JL.W1: Inspekcja kodu Java"
+author:
+- Maciej Bielecki
+- Przemysław Kopański
+- Mateusz Forc
 ---
 
 ## Zadanie
@@ -92,6 +96,44 @@ pasuje do wyrażenia `"EiTI"`, ale nie do `17` lub `new Object().toString()`.
   technique in GHC". Simon Peyton Jones, Andrew Tolmach and Tony Hoare; Haskell
   workshop 2001.
   <http://research.microsoft.com/en-us/um/people/simonpj/Papers/rules.htm>
+
+### Semantyka reguł
+
+Podstawową operacją wykonywaną na wzorcach jest _dopasowanie wzorca do
+wyrażenia_. Jej wynikiem jest _podstawienie_ - przypisanie metazmiennym wzorca
+konkretnych wyrażeń, lub porażka w przypadku gdy wyrażenie nie pasuje do wzorca.
+Jest to szczególny przypadek _unifikacji_, gdzie tylko jedna strona zawiera
+metazmienne.
+
+_Dopasowanie wzorca *e* do wyrażenia *p*_ jest zdefiniowane następująco:
+
+- Jeśli _p_ jest metazmienną wzorca bez określonego typu i _e_ jest wyrażeniem,
+  _e_ pasuje do _p_ z podstawieniem `p ~> e`.
+
+- Jeśli _p_ jest metazmienną wzorca o typie wyrażenia _t_ i _e_ jest wyrażeniem
+  pasującym do typu _t_, _e_ pasuje do _p_ z podstawieniem `p ~> e`.
+
+- Jeśli _p_ i _e_ są wyrażeniami tego samego rodzaju, ich _części stałe_
+  są równe, a każde z podwyrażeń _e_ pasuje do kolejnych podwyrażeń _p_ i
+  wszystkie podstawienia wynikające z dopasowania podwyrażeń zgadzają się ze
+  sobą, _e_ pasuje do _p_ z podstawieniem równym sumie podstawień podwyrażeń.
+
+- W przeciwnym przypadku _e_ nie pasuje do _p_.
+
+Podstawienia _zgadzają się ze sobą_, jeśli dla każdej wspólnej metazmiennej
+wyrażenia, które przypisują tej metazmiennej są sobie równe.
+
+Z powyższej semantyki wynika, że obsługiwane są wzorce _nieliniowe_, czyli
+takie, w których metazmienna może występować więcej niż jeden raz. Przy
+dopasowywaniu wszystkie wystąpienia metazmiennej muszą zostać dopasowane do
+takiego samego wyrażenia.
+
+Kolejną ważną operacją jest _zastosowanie podstawienia do wyrażenia_ - zamiana
+wszystkich wystąpień metazmiennych na odpowiadające im wyrażenia.
+
+_Zastosowanie reguły do wyrażenia_ polega na dopasowaniu wzorca reguły do tego
+wyrażenia i zastosowania wynikowego podstawienia do RHS reguły w przypadku
+sukcesu.
 
 ### Gramatyka języka reguł
 
