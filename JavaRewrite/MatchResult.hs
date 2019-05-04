@@ -24,9 +24,8 @@ type Subst = M.Map Ident Exp
 -- becomes a failure if they don't agree on one of the metavariables.
 newtype MatchResult = MatchResult { unMatchResult :: Maybe Subst } deriving (Eq, Show)
 
-instance Monoid MatchResult where
-  mempty = MatchResult (Just M.empty)
-  MatchResult a `mappend` MatchResult b =
+instance Semigroup MatchResult where
+  MatchResult a <> MatchResult b =
       MatchResult (bindM2 mergeMaps a b)
 
     where
@@ -43,6 +42,9 @@ instance Monoid MatchResult where
       keepIfEqual e1 e2
         | e1 == e2  = Just e1
         | otherwise = Nothing
+
+instance Monoid MatchResult where
+  mempty = MatchResult (Just M.empty)
 
 singleton :: Ident -> Exp -> MatchResult
 singleton k v = MatchResult $ Just $ M.singleton k v

@@ -2,7 +2,7 @@ module JavaRewrite.Rule where
 
 import Language.Java.Syntax
 import Language.Java.Pretty
-import Text.PrettyPrint
+import Text.PrettyPrint hiding ((<>))
 
 -- | Possible restrictions on the values of metavariables.
 data ExpressionType
@@ -33,7 +33,7 @@ instance Pretty Pattern where
   pretty (Pattern metavars expr) = ppForall metavars <+> pretty expr
     where
       ppForall [] = empty
-      ppForall metavars = text "forall" <+> sep (map pretty metavars) <> text "."
+      ppForall metavars = (text "forall" <+> sep (map pretty metavars)) <> text "."
 
 data Rule = Rule { rule_pattern :: Pattern, rule_replacement :: Exp }
   deriving (Eq, Show)

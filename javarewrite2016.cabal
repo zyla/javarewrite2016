@@ -24,7 +24,7 @@ library
 
                        RandomStuff
 
-  build-depends:       base >=4.9 && <4.10
+  build-depends:       base >=4.9 && <5
                      , language-java == 0.2.*
                      , parsec
                      , pretty
@@ -38,7 +38,7 @@ executable javarewrite2016
   hs-source-dirs:      main
   main-is:             Main.hs
 
-  build-depends:       base >=4.9 && <4.10
+  build-depends:       base >=4.9 && <5
                      , javarewrite2016
                      , language-java == 0.2.*
                      , parsec
@@ -55,7 +55,7 @@ test-suite tests
 
   other-modules:       TestUtils
 
-  build-depends:       base >=4.9 && <4.10
+  build-depends:       base >=4.9 && <5
                      , javarewrite2016
                      , language-java == 0.2.*
                      , parsec
